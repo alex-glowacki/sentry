@@ -1,12 +1,19 @@
 {
-	"folders": [
-		{
-			"path": "../.."
-		},
-		{
-			"name": "sentry",
-			"path": "."
-		}
-	],
-	"settings": {}
+  "folders": [
+    {
+      "name": "sentry",
+      "path": ".",
+    },
+    {
+      "name": "frimware",
+      "path": "firmware",
+    },
+  ],
+  "settings": {
+    "python.analysis.typeCheckingMode": "basic",
+    "editor.formatOnSave": true,
+    "[python]": {
+      "editor.defaultFormatter": "charliermarsh.ruff",
+    },
+  },
 }
