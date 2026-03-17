@@ -1,0 +1,4 @@
+# firmware/.gitignore
+.pio/
+.vscode/
+*.orig
