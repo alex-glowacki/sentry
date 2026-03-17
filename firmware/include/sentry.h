@@ -1,11 +1,11 @@
 #pragma once
 
-#include <stdint.h>
-
 /**
  * @file sentry.h
  * @brief Pin assignments and serial protocol constants for the Sentry firmware.
  */
+
+#include <stdint.h>
 
  // Hardware
  constexpr uint8_t RELAY_PIN = 7;
