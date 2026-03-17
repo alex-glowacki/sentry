@@ -1,0 +1,21 @@
+{
+  "configurations": [
+    {
+      "name": "PlatformIO",
+      "includePath": [
+        "${workspaceFolder}/include",
+        "${workspaceFolder}/src",
+        "C:/Users/alexg/.platformio/packages/framework-arduinorenesas-uno/cores/arduino",
+        "C:/Users/alexg/.platformio/packages/framework-arduinorenesas-uno/variants/UNOWIFIR4",
+        "C:/Users/alexg/.platformio/packages/framework-arduinorenesas-uno/libraries/**",
+        "C:/Users/alexg/.platformio/packages/toolchain-gccarmnoneeabi/arm-none-eabi/include"
+      ],
+      "defines": ["ARDUINO=10819", "ARDUINO_UNOWIFIR4", "ARDUINO_ARCH_RENESAS"],
+      "compilerPath": "C:/Users/alexg/.platformio/packages/toolchain-gccarmnoneeabi/bin/arm-none-eabi-gcc.exe",
+      "cStandard": "c11",
+      "cppStandard": "c++17",
+      "intelliSenseMode": "gcc-arm"
+    }
+  ],
+  "version": 4
+}
