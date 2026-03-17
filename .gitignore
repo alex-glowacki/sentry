@@ -1,4 +1,16 @@
-# firmware/.gitignore
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.venv/
+.env
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.coverage
+htmlcov/
+
+# PlatformIO
 .pio/
-.vscode/
-*.orig
