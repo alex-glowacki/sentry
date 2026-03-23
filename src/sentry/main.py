@@ -6,8 +6,14 @@ import argparse
 import logging
 import sys
 
+from picamera2 import Picamera2  # type: ignore[import-untyped]
+
 from sentry.commander import Commander
-from sentry.detector import Detection, Detector
+from sentry.detector import Detection, ObjectDetector
+
+logger = logging.getLogger(__name__)
+
+_FRAME_SIZE: tuple[int, int] = (640, 640)
 
 
 def _parse_args() -> argparse.Namespace:
@@ -15,7 +21,7 @@ def _parse_args() -> argparse.Namespace:
         description="Sentry - AI-powered airsoft turret targeting loop."
     )
     parser.add_argument("--port", default="/dev/ttyACM0", help="Arduino serial port")
-    parser.add_argument("--baudrate", type=int, default=115200, help="Serial baud rate")
+    parser.add_argument("--baudrate", type=int, default=115_200, help="Serial baud rate")
     parser.add_argument(
         "--threshold",
         type=float,
@@ -26,35 +32,47 @@ def _parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def main() -> None:
-    args = _parse_args()
+def _build_camera() -> Picamera2:
+    """Initialize and start the IMX708 camera at 640x640 RGB888."""
+    logging.getLogger("picamera2").setLevel(logging.WARNING)
+    cam = Picamera2()
+    cam.configure(cam.create_preview_configuration(main={"format": "RGB888", "size": _FRAME_SIZE}))
+    cam.start()
+    logger.info("Camera started (%dx%d RGB888).", *_FRAME_SIZE)
+    return cam
 
+
+def main() -> None:
+    """Run the Sentry targeting loop."""
+    args = _parse_args()
     logging.basicConfig(
         level=logging.DEBUG if args.verbose else logging.INFO,
         format="%(asctime)s [%(levelname)s] %(message)s",
     )
-    log = logging.getLogger(__name__)
 
-    detector = Detector()
+    cam = _build_camera()
 
     try:
-        with Commander(port=args.port, baudrate=args.baudrate) as cmd:
-            log.info("Sentry online - port=%s threshold=%.2f", args.port, args.threshold)
-            # TODO: replace with real camera frame loop
+        with (
+            ObjectDetector(
+                confidence_threshold=args.threshold,
+            ) as detector,
+            Commander(port=args.port, baudrate=args.baudrate) as cmd,
+        ):
+            logger.info("Sentry online - port=%s threshold=%.2f", args.port, args.threshold)
             while True:
-                frame = None  # placeholder until Hailo pipeline is wired in
+                frame = cam.capture_array()
                 detections: list[Detection] = detector.detect(frame)
-
-                high_conf = [d for d in detections if d.confidence >= args.threshold]
-
-                if high_conf:
-                    log.debug("Target acquired: %s", high_conf[0])
+                if detections:
+                    best: Detection = max(detections, key=lambda d: d.confidence)
+                    logger.debug("Target acquired: %s conf=%.2f", best.label, best.confidence)
                     cmd.fire()
                 else:
                     cmd.safe()
-
     except KeyboardInterrupt:
-        log.info("Shutting down.")
+        logger.info("Shutting down.")
+    finally:
+        cam.stop()
         sys.exit(0)
 
 
