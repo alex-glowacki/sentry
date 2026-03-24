@@ -22,7 +22,6 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip
-          pip install ruff mypy pytest
           pip install -e ".[dev]"
 
       - name: Ruff lint
@@ -48,7 +47,14 @@ jobs:
       - name: Install PlatformIO
         run: pip install platformio
 
-      - name: Build firmware
+      - name: Install PlatformIO dependencies
+        run: cd firmware && pio run --target depends || true
+
+      - name: Patch dcd_rusb2.c for GCC 14
         run: |
-          cd firmware
-          pio run
+          FILE=~/.platformio/packages/framework-arduinorenesas-uno/cores/arduino/tinyusb/rusb2/dcd_rusb2.c
+          sed -i 's/TU_ASSERT(num);/if (!num) return;/' $FILE
+          sed -i 's/TU_ASSERT(result, false);/if (!result) return false;/' $FILE
+
+      - name: Build firmware
+        run: cd firmware && pio run
