@@ -19,7 +19,7 @@ from dataclasses import dataclass, field
 from typing import Any, Final
 
 import numpy as np
-from hailo_platform import VDevice  # type: ignore[import-untyped]
+from hailo_platform import VDevice  # type: ignore[import-not-found]
 
 logger = logging.getLogger(__name__)
 
