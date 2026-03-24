@@ -29,13 +29,12 @@ static long mapRange(long x, long inMin, long inMax, long outMin, long outMax) {
 }
 
 /**
- * Drive the pan servo to the requested angle (0-359 deg).
- * Clamps input to valid range before writing.
+ * Drive the pan servo to the requested speed tick directly.
+ * For 360-deg continuous servo: PAN_TICKS_MID = stop,
+ * below = one direction, above = other direction.
  */
-static void setPan(int degrees) {
-  degrees = constrain(degrees, PAN_DEG_MIN, PAN_DEG_MAX);
-  const uint16_t ticks = static_cast<uint16_t>(mapRange(
-      degrees, PAN_DEG_MIN, PAN_DEG_MAX, PAN_TICKS_MIN, PAN_TICKS_MAX));
+static void setPan(uint16_t ticks) {
+  ticks = constrain(ticks, PAN_TICKS_MIN, PAN_TICKS_MAX);
   pca.setPWM(CH_PAN, 0, ticks);
 }
 
@@ -52,7 +51,7 @@ static void setTilt(int degrees) {
 
 /**
  * Engage or release the solenoid relay.
- * Uses PCA9685 full-on/full-off rather than PWM to avoid relay chatter.
+ * Uses PCA9685 full-on/off rather than PWM to avoid relay chatter.
  */
 static void setRelay(bool on) {
   if (on) {
@@ -63,7 +62,7 @@ static void setRelay(bool on) {
 }
 
 /**
- * Parse and dispatch a complete command string (no trailing newline).
+ * Parse and dispatch a complete comand string (no trailing newline).
  * Responds over Serial for acknowledgement / debugging.
  */
 static void dispatchCommand(const String &cmd) {
@@ -85,7 +84,12 @@ static void dispatchCommand(const String &cmd) {
 
   case CMD_PAN: {
     const int deg = cmd.substring(1).toInt();
-    setPan(deg);
+    // Map degree command to ticks for caller convenience,
+    // but pan is continuous - deg is treated as a speed/position hint.
+    // 180 deg -> MID (stop), 0 -> MIN, 359 -> MAX.
+    const uint16_t ticks = static_cast<uint16_t>(
+        mapRange(deg, PAN_DEG_MIN, PAN_DEG_MAX, PAN_TICKS_MIN, PAN_TICKS_MAX));
+    setPan(ticks);
     Serial.print(F("PAN "));
     Serial.println(deg);
     break;
@@ -115,15 +119,18 @@ void setup() {
 
   Wire.begin();
   pca.begin();
-  pca.setOscillatorFrequency(
-      27000000); // Trim internal oscillator (27 MHz typical)
+  pca.setOscillatorFrequency(27000000);
   pca.setPWMFreq(SERVO_FREQ_HZ);
   delay(10); // Allow PCA9685 to stabilize after freq change
 
-  // Boot into safe, centered state
+  // Safe relay immediately after PCA9685 is initialized
   setRelay(false);
-  setPan(180); // Center pan
-  setTilt(90); // Center tilt
+
+  // Stop continuous pan servo at mid-point
+  pca.setPWM(CH_PAN, 0, PAN_TICKS_MID);
+
+  // Center tilt servo
+  setTilt(90);
 
   serialBuf.reserve(16);
 

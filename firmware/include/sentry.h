@@ -25,10 +25,11 @@ constexpr uint8_t CH_RELAY = 2; // Solenoid relay - FIRE/SAFE
 constexpr float SERVO_FREQ_HZ = 50.0f; // Standard 50 Hz servo signal
 
 constexpr uint16_t PAN_TICKS_MIN = 205; // Micro servo - 0 deg
-constexpr uint16_t PAN_TICKS_MAX = 410; // Micro servo - 359 deg
+constexpr uint16_t PAN_TICKS_MID = 307; // stop
+constexpr uint16_t PAN_TICKS_MAX = 409; // Micro servo - 359 deg
 
-constexpr uint16_t TILT_TICKS_MIN = 205; // 25 kg servo - 0 deg
-constexpr uint16_t TILT_TICKS_MAX = 410; // 25 kg servo - 180 deg
+constexpr uint16_t TILT_TICKS_MIN = 102; // 25 kg servo - 0 deg
+constexpr uint16_t TILT_TICKS_MAX = 512; // 25 kg servo - 180 deg
 
 // Relay: full PWM on/off via PCA9685 (channel driven HIGH/LOW)
 constexpr uint16_t RELAY_TICKS_ON = 4096; // Special PCA9685 value: always ON
