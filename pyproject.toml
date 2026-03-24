@@ -35,5 +35,5 @@ files = [ "src" ]
 module = [ "hailo_platform.*", "picamera2.*" ]
 ignore_missing_imports = true
 
-[tool.pytest.ini_option]
+[tool.pytest.ini_options]
 testpaths = [ "tests" ]
