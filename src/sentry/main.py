@@ -7,7 +7,7 @@ import logging
 import sys
 import time
 
-from picamera2 import Picamera2  # type: ignore[import-not-found]
+from picamera2 import Picamera2
 
 from sentry.commander import Commander
 from sentry.detector import Detection, ObjectDetector
