@@ -54,7 +54,8 @@ jobs:
         run: |
           FILE=~/.platformio/packages/framework-arduinorenesas-uno/cores/arduino/tinyusb/rusb2/dcd_rusb2.c
           sed -i 's/TU_ASSERT(num);/if (!num) return;/' $FILE
-          sed -i 's/TU_ASSERT(result, false);/if (!result) return false;/' $FILE
+          sed -i '512s/if (!num) return;/if (!num) return false;/' $FILE
+          sed -i '834s/if (!num) return;/if (!num) return false;/' $FILE
 
       - name: Build firmware
         run: cd firmware && pio run
