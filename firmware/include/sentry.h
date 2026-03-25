@@ -45,4 +45,4 @@ constexpr char CMD_TILT = 'T';
 constexpr int PAN_DEG_MIN = 0;
 constexpr int PAN_DEG_MAX = 359;
 constexpr int TILT_DEG_MIN = 0;
-constexpr int TILT_DEG_MAX = 180;
+constexpr int TILT_DEG_MAX = 270; // was 180
