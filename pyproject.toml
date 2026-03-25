@@ -37,3 +37,4 @@ ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 testpaths = [ "tests" ]
+markers = [ "hardware: tests that require physical hardware connected" ]
