@@ -19,8 +19,9 @@
 
 | Byte | Direction    | Effect            |
 | ---- | ------------ | ----------------- |
-| `F`  | Pi → Arduino | Relay HIGH (FIRE) |
-| `S`  | Pi → Arduino | Relay LOW (SAFE)  |
+| `T<deg>`  | Pi → Arduino | Set tilt angle, 0-270 degrees  |
+| `F`       | Pi → Arduino | Relay HIGH (FIRE)              |
+| `S`       | Pi → Arduino | Relay LOW (SAFE)               |
 
 Baud rate: `115200`. Connection managed as a context manager in `Commander`.
 
