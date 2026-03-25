@@ -58,13 +58,19 @@ def _parse_args() -> argparse.Namespace:
         "--pan-range",
         type=float,
         default=90.0,
-        help="Half-sweep of pan in degrees — maps frame edge to this offset from center (default: 90)",
+        help=(
+            "Half-sweep of pan in degrees — maps frame edge to this"
+            " offset from center (default: 90)"
+        ),
     )
     parser.add_argument(
         "--tilt-range",
         type=float,
         default=45.0,
-        help="Half-sweep of tilt in degrees — maps frame edge to this offset from center (default: 45)",
+        help=(
+            "Half-sweep of tilt in degrees — maps frame edge to this"
+            " offset from center (default: 45)"
+        ),
     )
     parser.add_argument("--verbose", action="store_true", help="Enable debug logging")
     return parser.parse_args()
@@ -181,7 +187,8 @@ def main() -> None:
                     cmd.tilt(tilt_deg)
 
                     logger.debug(
-                        "Target acquired: %s conf=%.2f bbox=%s → pan=%d tilt=%d — firing burst (%dms)",
+                        "Target acquired: %s conf=%.2f bbox=%s"
+                        " → pan=%d tilt=%d — firing burst (%dms)",
                         best.label,
                         best.confidence,
                         best.bbox,

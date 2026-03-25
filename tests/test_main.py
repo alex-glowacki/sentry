@@ -1,5 +1,5 @@
-from sentry.main import _aim
 from sentry.detector import Detection
+from sentry.main import _aim
 
 
 def test_aim_center():
