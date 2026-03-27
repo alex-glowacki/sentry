@@ -132,7 +132,7 @@ class Detection:
 
 
 def _parse_nms_buffer(
-    buf: np.ndarray,
+    buf: np.ndarray[Any, np.dtype[np.float32]],
     confidence_threshold: float,
 ) -> list[Detection]:
     """Parse a flat NMS output buffer into :class:`Detection` objects.
@@ -192,7 +192,7 @@ class ObjectDetector:
 
         self._vdevice: VDevice | None = None
         self._configured: Any | None = None  # ConfiguredInferModel (untyped SDK)
-        self._output_buf: np.ndarray | None = None
+        self._output_buf: np.ndarray[Any, np.dtype[np.float32]] | None = None
         self._running = False
 
         logger.info(
@@ -219,7 +219,7 @@ class ObjectDetector:
         self._running = True
         logger.info("Hailo inference pipeline ready.")
 
-    def detect(self, frame: np.ndarray) -> list[Detection]:
+    def detect(self, frame: np.ndarray[Any, np.dtype[np.uint8]]) -> list[Detection]:
         """Run inference on a single BGR/RGB frame and return detections.
 
         Args:
