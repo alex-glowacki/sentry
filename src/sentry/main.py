@@ -192,8 +192,6 @@ def main() -> None:
     cooldown_end: float = 0.0
     _firing: bool = False
     _pan_moving: bool = False
-    _last_pan: int = _PAN_CENTER
-    _last_tilt: int = _TILT_CENTER
 
     try:
         with (
@@ -219,8 +217,6 @@ def main() -> None:
                         cmd.safe()
                         _firing = False
                         _pan_moving = False
-                        _last_pan = _PAN_CENTER
-                        _last_tilt = _TILT_CENTER
                     continue
 
                 # --- Cooldown lockout. ---
@@ -237,19 +233,14 @@ def main() -> None:
                     pan_deg, tilt_deg = _aim(best, args.pan_range, args.tilt_range)
 
                     if not _in_dead_zone(
-                        pan_deg, tilt_deg, _last_pan, _last_tilt, args.pan_dead, args.tilt_dead
+                        pan_deg, tilt_deg, *cmd.position, args.pan_dead, args.tilt_dead
                     ):
-                        cmd.pan(pan_deg)
-                        cmd.tilt(tilt_deg)
-                        _last_pan = pan_deg
-                        _last_tilt = tilt_deg
+                        cmd.slew_to(pan_deg, tilt_deg)
                         _pan_moving = True
                         logger.debug(
-                            "Servo update: pan=%d tilt=%d (Δpan=%d Δtilt=%d)",
+                            "Servo update: pan=%d tilt=%d",
                             pan_deg,
                             tilt_deg,
-                            abs(pan_deg - _last_pan),
-                            abs(tilt_deg - _last_tilt),
                         )
 
                     if not _firing:
@@ -274,14 +265,11 @@ def main() -> None:
                         cmd.safe()
                         _firing = False
                         _pan_moving = False
-                        _last_pan = _PAN_CENTER
-                        _last_tilt = _TILT_CENTER
 
     except KeyboardInterrupt:
         logger.info("Shutting down.")
     finally:
         cam.stop()
-        sys.exit(0)
 
 
 if __name__ == "__main__":
