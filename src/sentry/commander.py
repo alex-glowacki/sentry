@@ -72,6 +72,7 @@ class Commander:
 
     def close(self) -> None:
         """Send SAFE, then close the serial port."""
+        self.pan(180)
         self.safe()
         if self._serial is not None and self._serial.is_open:
             self._serial.close()

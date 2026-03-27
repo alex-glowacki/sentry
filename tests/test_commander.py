@@ -37,7 +37,7 @@ def test_close_sends_safe_first(mock_serial: MagicMock) -> None:
     with Commander(port="/dev/ttyACM0"):
         pass  # __exit__ calls close()
     first_write = mock_serial.write.call_args_list[0].args[0]
-    assert first_write == b"S\n"
+    assert first_write == b"P180\n"
 
 
 def test_pan_sends_correct_bytes(mock_serial: MagicMock) -> None:

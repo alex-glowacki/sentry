@@ -200,6 +200,7 @@ def main() -> None:
                     burst_end = now + burst_s
                     cooldown_end = burst_end + cooldown_s
                 else:
+                    cmd.pan(180)
                     cmd.safe()
 
     except KeyboardInterrupt:
