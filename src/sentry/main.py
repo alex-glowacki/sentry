@@ -72,6 +72,20 @@ def _parse_args() -> argparse.Namespace:
             " offset from center (default: 45)"
         ),
     )
+    parser.add_argument(
+        "--pan-dead",
+        type=float,
+        default=5.0,
+        help="Pan dead-zone in degrees — suppress servo movement within this threshold"
+        " (default: 5)",
+    )
+    parser.add_argument(
+        "--tilt-dead",
+        type=float,
+        default=5.0,
+        help="Tilt dead-zone in degrees — suppress servo movement within this threshold"
+        " (default: 5)",
+    )
     parser.add_argument("--verbose", action="store_true", help="Enable debug logging")
     return parser.parse_args()
 
@@ -111,6 +125,33 @@ def _aim(
     return pan_deg, tilt_deg
 
 
+def _in_dead_zone(
+    pan_deg: int,
+    tilt_deg: int,
+    last_pan: int,
+    last_tilt: int,
+    pan_dead: float,
+    tilt_dead: float,
+) -> bool:
+    """Return True if the requested position is within the dead-zone of the last commanded position.
+
+    Movement is suppressed when both axes are within their respective thresholds,
+    reducing servo jitter from bbox noise without delaying target acquisition.
+
+    Args:
+        pan_deg: Newly computed pan angle in degrees.
+        tilt_deg: Newly computed tilt angle in degrees.
+        last_pan: Last commanded pan angle in degrees.
+        last_tilt: Last commanded tilt angle in degrees.
+        pan_dead: Pan dead-zone half-width in degrees.
+        tilt_dead: Tilt dead-zone half-width in degrees.
+
+    Returns:
+        ``True`` if movement should be suppressed.
+    """
+    return abs(pan_deg - last_pan) <= pan_dead and abs(tilt_deg - last_tilt) <= tilt_dead
+
+
 def _build_camera() -> Picamera2:
     """Initialize and start the IMX708 camera at 640x640 RGB888."""
     logging.getLogger("picamera2").setLevel(logging.WARNING)
@@ -134,12 +175,15 @@ def main() -> None:
     cooldown_s: float = args.cooldown_ms / 1_000.0
 
     logger.info(
-        "Targets: %s | burst=%dms cooldown=%dms | pan_range=%.1f tilt_range=%.1f",
+        "Targets: %s | burst=%dms cooldown=%dms | pan_range=%.1f tilt_range=%.1f"
+        " | pan_dead=%.1f tilt_dead=%.1f",
         ", ".join(sorted(targets)),
         args.burst_ms,
         args.cooldown_ms,
         args.pan_range,
         args.tilt_range,
+        args.pan_dead,
+        args.tilt_dead,
     )
 
     cam = _build_camera()
@@ -148,6 +192,8 @@ def main() -> None:
     cooldown_end: float = 0.0
     _firing: bool = False
     _pan_moving: bool = False
+    _last_pan: int = _PAN_CENTER
+    _last_tilt: int = _TILT_CENTER
 
     try:
         with (
@@ -173,6 +219,8 @@ def main() -> None:
                         cmd.safe()
                         _firing = False
                         _pan_moving = False
+                        _last_pan = _PAN_CENTER
+                        _last_tilt = _TILT_CENTER
                     continue
 
                 # --- Cooldown lockout. ---
@@ -188,9 +236,21 @@ def main() -> None:
                     best: Detection = max(engaged, key=lambda d: d.confidence)
                     pan_deg, tilt_deg = _aim(best, args.pan_range, args.tilt_range)
 
-                    cmd.pan(pan_deg)
-                    cmd.tilt(tilt_deg)
-                    _pan_moving = True
+                    if not _in_dead_zone(
+                        pan_deg, tilt_deg, _last_pan, _last_tilt, args.pan_dead, args.tilt_dead
+                    ):
+                        cmd.pan(pan_deg)
+                        cmd.tilt(tilt_deg)
+                        _last_pan = pan_deg
+                        _last_tilt = tilt_deg
+                        _pan_moving = True
+                        logger.debug(
+                            "Servo update: pan=%d tilt=%d (Δpan=%d Δtilt=%d)",
+                            pan_deg,
+                            tilt_deg,
+                            abs(pan_deg - _last_pan),
+                            abs(tilt_deg - _last_tilt),
+                        )
 
                     if not _firing:
                         cmd.fire()
@@ -214,6 +274,8 @@ def main() -> None:
                         cmd.safe()
                         _firing = False
                         _pan_moving = False
+                        _last_pan = _PAN_CENTER
+                        _last_tilt = _TILT_CENTER
 
     except KeyboardInterrupt:
         logger.info("Shutting down.")
