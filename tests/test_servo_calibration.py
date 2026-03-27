@@ -106,6 +106,14 @@ def test_tilt_max_position(cmd: Commander) -> None:
     time.sleep(OBSERVE_S)
 
 
+@pytest.mark.hardware
+def test_tilt_horizontal_rest(cmd: Commander) -> None:
+    """Tilt servo should move to horizontal rest position at T90."""
+    print("\n -> Sending TILT 90 - servo should be horizontal.")
+    cmd.tilt(90)
+    time.sleep(OBSERVE_S)
+
+
 # ----------------------------------------
 # Helpers
 # ----------------------------------------
