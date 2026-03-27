@@ -146,6 +146,8 @@ def main() -> None:
 
     burst_end: float = 0.0
     cooldown_end: float = 0.0
+    _firing: bool = False
+    _pan_moving: bool = False
 
     try:
         with (
@@ -166,17 +168,20 @@ def main() -> None:
 
                 # --- Burst just ended: send SAFE and wait out cooldown. ---
                 if burst_end != 0.0 and now < cooldown_end:
-                    cmd.safe()
+                    if _firing:
+                        cmd.pan(180)
+                        cmd.safe()
+                        _firing = False
+                        _pan_moving = False
                     continue
 
-                # --- Cooldown lockout: suppress all firing. ---
+                # --- Cooldown lockout. ---
                 if now < cooldown_end:
                     continue
 
                 # --- Normal evaluation. ---
                 frame = cam.capture_array()
                 detections: list[Detection] = detector.detect(frame)
-
                 engaged = [d for d in detections if d.label.lower() in targets]
 
                 if engaged:
@@ -185,6 +190,11 @@ def main() -> None:
 
                     cmd.pan(pan_deg)
                     cmd.tilt(tilt_deg)
+                    _pan_moving = True
+
+                    if not _firing:
+                        cmd.fire()
+                        _firing = True
 
                     logger.debug(
                         "Target acquired: %s conf=%.2f bbox=%s"
@@ -196,12 +206,14 @@ def main() -> None:
                         tilt_deg,
                         args.burst_ms,
                     )
-                    cmd.fire()
                     burst_end = now + burst_s
                     cooldown_end = burst_end + cooldown_s
                 else:
-                    cmd.pan(180)
-                    cmd.safe()
+                    if _firing or _pan_moving:
+                        cmd.pan(180)
+                        cmd.safe()
+                        _firing = False
+                        _pan_moving = False
 
     except KeyboardInterrupt:
         logger.info("Shutting down.")

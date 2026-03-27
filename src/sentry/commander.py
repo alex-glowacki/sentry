@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import time
 
 import serial
 
@@ -74,6 +75,9 @@ class Commander:
         """Send SAFE, then close the serial port."""
         self.pan(180)
         self.safe()
+        import time
+
+        time.sleep(0.1)
         if self._serial is not None and self._serial.is_open:
             self._serial.close()
             logger.debug("Serial port %s closed.", self._port)
@@ -85,3 +89,4 @@ class Commander:
         if self._serial is None or not self._serial.is_open:
             raise RuntimeError("Commander is not open - use it as a context manager.")
         self._serial.write(cmd + b"\n")
+        time.sleep(0.02)
