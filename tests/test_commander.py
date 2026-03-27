@@ -65,4 +65,4 @@ def test_tilt_clamps_to_max(mock_serial: MagicMock) -> None:
     with Commander(port="/dev/ttyACM0") as cmd:
         cmd.tilt(999)
     calls = [call.args[0] for call in mock_serial.write.call_args_list]
-    assert b"T270\n" in calls
+    assert b"T180\n" in calls
