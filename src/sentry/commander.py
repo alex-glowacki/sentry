@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 # Angle limits - must match sentry.h
 _PAN_MIN: int = 0
-_PAN_MAX: int = 359
+_PAN_MAX: int = 270
 _TILT_MIN: int = 0
 _TILT_MAX: int = 180
 

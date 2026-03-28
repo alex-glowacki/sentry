@@ -63,7 +63,7 @@ def test_pan_clamps_to_max(mock_serial: MagicMock) -> None:
     with Commander(port="/dev/ttyACM0") as cmd:
         cmd.pan(999)
     calls = [call.args[0] for call in mock_serial.write.call_args_list]
-    assert b"P359\n" in calls
+    assert b"P270\n" in calls
 
 
 def test_tilt_clamps_to_max(mock_serial: MagicMock) -> None:
@@ -106,5 +106,5 @@ def test_slew_to_clamps_to_limits(mock_serial: MagicMock) -> None:
         cmd._tilt = 178
         cmd.slew_to(999, 999)
         # Assert inside with block before close() slews back to center
-        assert cmd._pan == 359
+        assert cmd._pan == 270
         assert cmd._tilt == 180

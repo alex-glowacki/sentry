@@ -7,7 +7,7 @@
  * Serial protocol (115200 baud, newline-terminated ASCII):
  *  "F\n"       -> activate relay (FIRE)
  *  "S\n"       -> deactivate relay (SAFE)
- *  "P<deg>\n"  -> set pan angle, 0-359 degrees
+ *  "P<deg>\n"  -> set pan angle, 0-270 degrees
  *  "T<deg>\n"  -> set tilt angle, 0-180 degrees
  */
 
@@ -17,16 +17,15 @@
 constexpr uint8_t PCA9685_ADDR = 0x40;
 
 // PCA9685 channel assignments
-constexpr uint8_t CH_PAN = 0;   // Micro servo - pan (0-359 deg)
+constexpr uint8_t CH_PAN = 0;   // 25 kg servo - pan (0-270 deg)
 constexpr uint8_t CH_TILT = 1;  // 25 kg servo - tilt (0-180 deg)
 constexpr uint8_t CH_RELAY = 2; // Solenoid relay - FIRE/SAFE
 
 // Servo PWM frequency
 constexpr float SERVO_FREQ_HZ = 50.0f; // Standard 50 Hz servo signal
 
-constexpr uint16_t PAN_TICKS_MIN = 205; // Micro servo - 0 deg
-constexpr uint16_t PAN_TICKS_MID = 307; // stop
-constexpr uint16_t PAN_TICKS_MAX = 409; // Micro servo - 359 deg
+constexpr uint16_t PAN_TICKS_MIN = 102; // 25 kg servo - 0 deg
+constexpr uint16_t PAN_TICKS_MAX = 375; // 25 kg servo - 270 deg
 
 constexpr uint16_t TILT_TICKS_MIN = 102; // 25 kg servo - 0 deg (90 deg down)
 constexpr uint16_t TILT_TICKS_MAX = 375; // 25 kg servo - 180 deg (90 deg up)
@@ -43,6 +42,6 @@ constexpr char CMD_TILT = 'T';
 
 // Angle limits
 constexpr int PAN_DEG_MIN = 0;
-constexpr int PAN_DEG_MAX = 359;
+constexpr int PAN_DEG_MAX = 270;
 constexpr int TILT_DEG_MIN = 0;
-constexpr int TILT_DEG_MAX = 180; // ±90 deg from the horizontal
+constexpr int TILT_DEG_MAX = 180; // +-90 deg from horizontal

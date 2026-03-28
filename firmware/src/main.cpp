@@ -35,8 +35,10 @@ static long mapRange(long x, long inMin, long inMax, long outMin, long outMax) {
  * For 360-deg continuous servo: PAN_TICKS_MID = stop,
  * below = one direction, above = other direction.
  */
-static void setPan(uint16_t ticks) {
-  ticks = constrain(ticks, PAN_TICKS_MIN, PAN_TICKS_MAX);
+static void setPan(int degrees) {
+  degrees = constrain(degrees, PAN_DEG_MIN, PAN_DEG_MAX);
+  const uint16_t ticks = static_cast<uint16_t>(mapRange(
+      degrees, PAN_DEG_MIN, PAN_DEG_MAX, PAN_TICKS_MIN, PAN_TICKS_MAX));
   pca.setPWM(CH_PAN, 0, ticks);
 }
 
@@ -92,7 +94,7 @@ static void pca9685_reinit() {
   delay(10);
 
   setRelay(false);
-  pca.setPWM(CH_PAN, 0, PAN_TICKS_MID);
+  setPan(PAN_DEG_MAX / 2); // 135 deg - mechanical center
   setTilt(90);
 
   Serial.println(F("PCA9685 reinitialized."));
@@ -121,9 +123,7 @@ static void dispatchCommand(const String &cmd) {
 
   case CMD_PAN: {
     const int deg = cmd.substring(1).toInt();
-    const uint16_t ticks = static_cast<uint16_t>(
-        mapRange(deg, PAN_DEG_MIN, PAN_DEG_MAX, PAN_TICKS_MIN, PAN_TICKS_MAX));
-    setPan(ticks);
+    setPan(deg);
     Serial.print(F("PAN "));
     Serial.println(deg);
     break;
@@ -159,7 +159,7 @@ void setup() {
   delay(10);
 
   setRelay(false);
-  pca.setPWM(CH_PAN, 0, PAN_TICKS_MID);
+  setPan(PAN_DEG_MAX / 2); // 135 deg - mechanical center
   setTilt(90);
 
   serialBuf.reserve(16);
