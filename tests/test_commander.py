@@ -63,7 +63,7 @@ def test_pan_clamps_to_max(mock_serial: MagicMock) -> None:
     with Commander(port="/dev/ttyACM0") as cmd:
         cmd.pan(999)
     calls = [call.args[0] for call in mock_serial.write.call_args_list]
-    assert b"P270\n" in calls
+    assert b"P180\n" in calls
 
 
 def test_tilt_clamps_to_max(mock_serial: MagicMock) -> None:
@@ -75,15 +75,15 @@ def test_tilt_clamps_to_max(mock_serial: MagicMock) -> None:
 
 def test_slew_to_steps_incrementally(mock_serial: MagicMock) -> None:
     with Commander(port="/dev/ttyACM0") as cmd:
-        cmd._pan = 180
+        cmd._pan = 90
         cmd._tilt = 90
         mock_serial.write.reset_mock()  # ignore __enter__ writes
-        cmd.slew_to(186, 96)
+        cmd.slew_to(96, 96)
         writes = [call.args[0] for call in mock_serial.write.call_args_list]
-    # Should have stepped: 180→182→184→186, 90→92→94→96
-    assert b"P182\n" in writes
-    assert b"P184\n" in writes
-    assert b"P186\n" in writes
+    # Should have stepped: 90→92→94→96, 90→92→94→96
+    assert b"P92\n" in writes
+    assert b"P94\n" in writes
+    assert b"P96\n" in writes
     assert b"T92\n" in writes
     assert b"T94\n" in writes
     assert b"T96\n" in writes
@@ -106,5 +106,5 @@ def test_slew_to_clamps_to_limits(mock_serial: MagicMock) -> None:
         cmd._tilt = 178
         cmd.slew_to(999, 999)
         # Assert inside with block before close() slews back to center
-        assert cmd._pan == 270
+        assert cmd._pan == 180
         assert cmd._tilt == 180

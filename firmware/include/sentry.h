@@ -42,6 +42,6 @@ constexpr char CMD_TILT = 'T';
 
 // Angle limits
 constexpr int PAN_DEG_MIN = 0;
-constexpr int PAN_DEG_MAX = 270;
+constexpr int PAN_DEG_MAX = 180;
 constexpr int TILT_DEG_MIN = 0;
 constexpr int TILT_DEG_MAX = 180; // +-90 deg from horizontal

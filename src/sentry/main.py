@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 _FRAME_SIZE: tuple[int, int] = (640, 640)
 _DEFAULT_TARGETS: str = "person"
 
-_PAN_CENTER: int = 135  # degrees — mid of 0–270
+_PAN_CENTER: int = 90  # degrees — mid of 0–270
 _TILT_CENTER: int = 90  # degrees — mid of 0–180
 
 

@@ -65,9 +65,9 @@ def test_pan_min_position(cmd: Commander) -> None:
 
 @pytest.mark.hardware
 def test_pan_mid_position(cmd: Commander) -> None:
-    """Pan servo should move to 135 deg — mechanical centre."""
-    print("\n -> Sending PAN 135 - servo should be centred.")
-    cmd.pan(135)
+    """Pan servo should move to 90 deg — mechanical centre."""
+    print("\n -> Sending PAN 90 - servo should be centered.")
+    cmd.pan(90)
     time.sleep(OBSERVE_S)
 
 
@@ -81,13 +81,13 @@ def test_pan_max_position(cmd: Commander) -> None:
 
 @pytest.mark.hardware
 def test_pan_sweep(cmd: Commander) -> None:
-    """Sweep pan from 0 to 270 deg in steps to verify linearity."""
-    print("\n -> Sweeping pan 0 -> 270 deg in 45 deg steps.")
-    for deg in range(0, 271, 45):
+    """Sweep pan from 0 to 180 deg in steps to verify linearity."""
+    print("\n -> Sweeping pan 0 -> 180 deg in 45 deg steps.")
+    for deg in range(0, 181, 45):
         print(f"    PAN {deg} deg")
         cmd.pan(deg)
         time.sleep(1.5)
-    cmd.pan(135)  # return to center
+    cmd.pan(90)  # return to center
     time.sleep(1.0)
 
 

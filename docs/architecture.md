@@ -20,7 +20,7 @@
 | Byte | Direction    | Effect            |
 | ---- | ------------ | ----------------- |
 | `T<deg>`  | Pi → Arduino | Set tilt angle, 0-180 degrees  |
-| `P<deg>`  | Pi → Arduino | Set pan angle, 0-270 degrees   |
+| `P<deg>`  | Pi → Arduino | Set pan angle, 0-180 degrees   |
 | `F`       | Pi → Arduino | Relay HIGH (FIRE)              |
 | `S`       | Pi → Arduino | Relay LOW (SAFE)               |
 
