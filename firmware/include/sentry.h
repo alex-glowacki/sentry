@@ -24,8 +24,8 @@ constexpr uint8_t CH_RELAY = 2; // Solenoid relay - FIRE/SAFE
 // Servo PWM frequency
 constexpr float SERVO_FREQ_HZ = 50.0f; // Standard 50 Hz servo signal
 
-constexpr uint16_t PAN_TICKS_MIN = 102; // 25 kg servo - 0 deg
-constexpr uint16_t PAN_TICKS_MAX = 375; // 25 kg servo - 270 deg
+constexpr uint16_t PAN_TICKS_MIN = 115; // 25 kg servo - 0 deg
+constexpr uint16_t PAN_TICKS_MAX = 389; // 25 kg servo - 180 deg
 
 constexpr uint16_t TILT_TICKS_MIN = 102; // 25 kg servo - 0 deg (90 deg down)
 constexpr uint16_t TILT_TICKS_MAX = 375; // 25 kg servo - 180 deg (90 deg up)
