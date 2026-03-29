@@ -27,8 +27,8 @@ constexpr float SERVO_FREQ_HZ = 50.0f; // Standard 50 Hz servo signal
 constexpr uint16_t PAN_TICKS_MIN = 115; // 25 kg servo - 0 deg
 constexpr uint16_t PAN_TICKS_MAX = 389; // 25 kg servo - 180 deg
 
-constexpr uint16_t TILT_TICKS_MIN = 102; // 25 kg servo - 0 deg (90 deg down)
-constexpr uint16_t TILT_TICKS_MAX = 375; // 25 kg servo - 180 deg (90 deg up)
+constexpr uint16_t TILT_TICKS_MIN = 375; // 25 kg servo - 0 deg
+constexpr uint16_t TILT_TICKS_MAX = 102; // 25 kg servo - 180 deg
 
 // Relay: full PWM on/off via PCA9685 (channel driven HIGH/LOW)
 constexpr uint16_t RELAY_TICKS_ON = 4096; // Special PCA9685 value: always ON
