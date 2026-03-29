@@ -16,8 +16,8 @@ logger = logging.getLogger(__name__)
 _FRAME_SIZE: tuple[int, int] = (640, 640)
 _DEFAULT_TARGETS: str = "person"
 
-_PAN_CENTER: int = 90  # degrees — mid of 0–270
-_TILT_CENTER: int = 90  # degrees — mid of 0–180
+_PAN_CENTER: int = 90
+_TILT_CENTER: int = 90
 
 
 def _parse_args() -> argparse.Namespace:
@@ -99,23 +99,10 @@ def _aim(
     pan_range: float,
     tilt_range: float,
 ) -> tuple[int, int]:
-    """Compute absolute pan/tilt angles to centre on a detection.
-
-    Normalises the bounding box centre to [-1, 1] relative to the frame,
-    then scales by the configured range and offsets from the servo centre.
-
-    Args:
-        detection: Detection whose bbox to aim at.
-        pan_range: Half-sweep in degrees for pan (maps frame edge → ±pan_range).
-        tilt_range: Half-sweep in degrees for tilt (maps frame edge → ±tilt_range).
-
-    Returns:
-        ``(pan_deg, tilt_deg)`` as absolute integer degrees.
-    """
+    """Compute absolute pan/tilt angles to centre on a detection."""
     y1, x1, y2, x2 = detection.bbox
 
-    # Bbox centre, normalised to [-1, 1] (0,0 = frame centre).
-    cx: float = (x1 + x2) - 1.0  # equiv. to (centre_x / 0.5) - 1
+    cx: float = (x1 + x2) - 1.0
     cy: float = (y1 + y2) - 1.0
 
     pan_deg: int = round(_PAN_CENTER + cx * pan_range)
@@ -132,22 +119,7 @@ def _in_dead_zone(
     pan_dead: float,
     tilt_dead: float,
 ) -> bool:
-    """Return True if the requested position is within the dead-zone of the last commanded position.
-
-    Movement is suppressed when both axes are within their respective thresholds,
-    reducing servo jitter from bbox noise without delaying target acquisition.
-
-    Args:
-        pan_deg: Newly computed pan angle in degrees.
-        tilt_deg: Newly computed tilt angle in degrees.
-        last_pan: Last commanded pan angle in degrees.
-        last_tilt: Last commanded tilt angle in degrees.
-        pan_dead: Pan dead-zone half-width in degrees.
-        tilt_dead: Tilt dead-zone half-width in degrees.
-
-    Returns:
-        ``True`` if movement should be suppressed.
-    """
+    """Return True if the requested position is within the dead-zone."""
     return abs(pan_deg - last_pan) <= pan_dead and abs(tilt_deg - last_tilt) <= tilt_dead
 
 
@@ -209,10 +181,10 @@ def main() -> None:
                 if now < burst_end:
                     continue
 
-                # --- Burst just ended: send SAFE and wait out cooldown. ---
+                # --- Burst just ended: send SAFE and enter cooldown. ---
+                # Hold servo position — target may still be there after cooldown.
                 if burst_end != 0.0 and now < cooldown_end:
                     if _firing:
-                        cmd.pan(180)
                         cmd.safe()
                         _firing = False
                         _pan_moving = False
@@ -259,8 +231,10 @@ def main() -> None:
                     burst_end = now + burst_s
                     cooldown_end = burst_end + cooldown_s
                 else:
+                    # No target — safe the relay but hold servo position.
+                    # Snapping to home on every dropout causes the reset-and-jump
+                    # behaviour and prevents smooth re-acquisition.
                     if _firing or _pan_moving:
-                        cmd.pan(180)
                         cmd.safe()
                         _firing = False
                         _pan_moving = False
