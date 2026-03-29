@@ -10,6 +10,7 @@ from picamera2 import Picamera2
 
 from sentry.commander import Commander
 from sentry.detector import Detection, ObjectDetector
+from sentry.preview import PreviewStreamer
 
 logger = logging.getLogger(__name__)
 
@@ -85,6 +86,17 @@ def _parse_args() -> argparse.Namespace:
         help="Tilt dead-zone in degrees — suppress servo movement within this threshold"
         " (default: 5)",
     )
+    parser.add_argument(
+        "--preview",
+        action="store_true",
+        help="Stream an annotated MJPEG preview at http://sentry.local:8080",
+    )
+    parser.add_argument(
+        "--preview-port",
+        type=int,
+        default=8080,
+        help="Port for the MJPEG preview server (default: 8080)",
+    )
     parser.add_argument("--verbose", action="store_true", help="Enable debug logging")
     return parser.parse_args()
 
@@ -159,6 +171,11 @@ def main() -> None:
 
     cam = _build_camera()
 
+    previewer: PreviewStreamer | None = None
+    if args.preview:
+        previewer = PreviewStreamer(port=args.preview_port, frame_size=_FRAME_SIZE)
+        previewer.start()
+
     burst_end: float = 0.0
     cooldown_end: float = 0.0
     _firing: bool = False
@@ -177,12 +194,9 @@ def main() -> None:
             while True:
                 now: float = time.monotonic()
 
-                # --- Active burst: hold fire until burst window expires. ---
                 if now < burst_end:
                     continue
 
-                # --- Burst just ended: send SAFE and enter cooldown. ---
-                # Hold servo position — target may still be there after cooldown.
                 if burst_end != 0.0 and now < cooldown_end:
                     if _firing:
                         cmd.safe()
@@ -190,14 +204,15 @@ def main() -> None:
                         _pan_moving = False
                     continue
 
-                # --- Cooldown lockout. ---
                 if now < cooldown_end:
                     continue
 
-                # --- Normal evaluation. ---
                 frame = cam.capture_array()
                 detections: list[Detection] = detector.detect(frame)
                 engaged = [d for d in detections if d.label.lower() in targets]
+
+                pan_deg: int | None = None
+                tilt_deg: int | None = None
 
                 if engaged:
                     best: Detection = max(engaged, key=lambda d: d.confidence)
@@ -208,11 +223,7 @@ def main() -> None:
                     ):
                         cmd.slew_to(pan_deg, tilt_deg)
                         _pan_moving = True
-                        logger.debug(
-                            "Servo update: pan=%d tilt=%d",
-                            pan_deg,
-                            tilt_deg,
-                        )
+                        logger.debug("Servo update: pan=%d tilt=%d", pan_deg, tilt_deg)
 
                     if not _firing:
                         cmd.fire()
@@ -231,18 +242,33 @@ def main() -> None:
                     burst_end = now + burst_s
                     cooldown_end = burst_end + cooldown_s
                 else:
-                    # No target — safe the relay but hold servo position.
-                    # Snapping to home on every dropout causes the reset-and-jump
-                    # behaviour and prevents smooth re-acquisition.
                     if _firing or _pan_moving:
                         cmd.safe()
                         _firing = False
                         _pan_moving = False
 
+                if previewer is not None:
+                    last_pan, last_tilt = cmd.position
+                    previewer.push(
+                        frame,
+                        detections,
+                        engaged,
+                        pan_deg,
+                        tilt_deg,
+                        last_pan,
+                        last_tilt,
+                        args.pan_dead,
+                        args.tilt_dead,
+                        args.pan_range,
+                        args.tilt_range,
+                    )
+
     except KeyboardInterrupt:
         logger.info("Shutting down.")
     finally:
         cam.stop()
+        if previewer is not None:
+            previewer.stop()
 
 
 if __name__ == "__main__":
