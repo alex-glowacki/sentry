@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import logging
 import threading
+import time
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from typing import Any
 
@@ -34,6 +35,7 @@ class PreviewStreamer:
         self._jpeg: bytes = b""
         self._server: HTTPServer | None = None
         self._thread: threading.Thread | None = None
+        self._last_push: float = 0.0
 
     def start(self) -> None:
         """Start the HTTP server on a background thread."""
@@ -107,8 +109,15 @@ class PreviewStreamer:
             pan_range: Pan half-sweep in degrees (maps frame edge → ±pan_range).
             tilt_range: Tilt half-sweep in degrees.
         """
+        # Cap preview at 15 fps to reduce lag
+        now = time.monotonic()
+        if now - self._last_push < 1.0 / 15.0:
+            return
+        self._last_push = now
+
         # OpenCV expects BGR
         annotated = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+        annotated = cv2.rotate(annotated, cv2.ROTATE_180)  # rotate 180 deg
         h, w = annotated.shape[:2]
 
         # --- All detections (gray) ---
@@ -160,6 +169,6 @@ class PreviewStreamer:
             cv2.line(annotated, (ax, ay - size), (ax, ay + size), (0, 0, 255), 2)
             cv2.circle(annotated, (ax, ay), size, (0, 0, 255), 1)
 
-        _, jpeg = cv2.imencode(".jpg", annotated, [cv2.IMWRITE_JPEG_QUALITY, 70])
+        _, jpeg = cv2.imencode(".jpg", annotated, [cv2.IMWRITE_JPEG_QUALITY, 50])
         with self._lock:
             self._jpeg = jpeg.tobytes()
