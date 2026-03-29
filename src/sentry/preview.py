@@ -120,6 +120,7 @@ class PreviewStreamer:
             cv2.putText(
                 annotated,
                 f"{det.label} {det.confidence:.2f}",
+                (p1[0], max(p1[1] - 6, 12)),
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.45,
                 (120, 120, 120),
