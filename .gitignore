@@ -17,3 +17,7 @@ htmlcov/
 
 # HailoRT
 *.log
+
+# VS Code
+.vscode/
+.vscode/*
