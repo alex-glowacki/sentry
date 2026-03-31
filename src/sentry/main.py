@@ -36,13 +36,13 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--burst-ms",
         type=int,
-        default=250,
+        default=100,
         help="Duration in milliseconds to hold the relay open per burst (default: 250)",
     )
     parser.add_argument(
         "--cooldown-ms",
         type=int,
-        default=500,
+        default=600,
         help="Lockout duration in milliseconds after a burst ends (default: 500)",
     )
     parser.add_argument(
