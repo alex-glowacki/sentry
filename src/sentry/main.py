@@ -17,8 +17,10 @@ logger = logging.getLogger(__name__)
 _FRAME_SIZE: tuple[int, int] = (640, 640)
 _DEFAULT_TARGETS: str = "person"
 
-_PAN_CENTER: int = 90
-_TILT_CENTER: int = 90
+_PAN_CENTER: int = 90  # degrees - mid of 0-270
+_TILT_CENTER: int = 90  # degrees - mid of 0-180
+_PAN_BIAS: int = 0  # tune empirically - positive = right
+_TILT_BIAS: int = 0  # tune empirically - positive = down (camera above barrel)
 
 
 def _parse_args() -> argparse.Namespace:
@@ -75,16 +77,16 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--pan-dead",
         type=float,
-        default=5.0,
+        default=2.0,
         help="Pan dead-zone in degrees — suppress servo movement within this threshold"
-        " (default: 5)",
+        " (default: 2)",
     )
     parser.add_argument(
         "--tilt-dead",
         type=float,
-        default=5.0,
+        default=2.0,
         help="Tilt dead-zone in degrees — suppress servo movement within this threshold"
-        " (default: 5)",
+        " (default: 2)",
     )
     parser.add_argument(
         "--preview",
@@ -117,8 +119,8 @@ def _aim(
     cx: float = (x1 + x2) - 1.0
     cy: float = (y1 + y2) - 1.0
 
-    pan_deg: int = round(_PAN_CENTER + cx * pan_range)
-    tilt_deg: int = round(_TILT_CENTER + cy * tilt_range)
+    pan_deg: int = round(_PAN_CENTER + cx * pan_range) + _PAN_BIAS
+    tilt_deg: int = round(_TILT_CENTER + cy * tilt_range) + _TILT_BIAS
 
     return pan_deg, tilt_deg
 
@@ -221,9 +223,14 @@ def main() -> None:
                     if not _in_dead_zone(
                         pan_deg, tilt_deg, *cmd.position, args.pan_dead, args.tilt_dead
                     ):
-                        cmd.slew_to(pan_deg, tilt_deg)
+                        cmd.pan(pan_deg)
+                        cmd.tilt(tilt_deg)
                         _pan_moving = True
-                        logger.debug("Servo update: pan=%d tilt=%d", pan_deg, tilt_deg)
+                        logger.debug(
+                            "Servo update: pan=%d tilt=%d",
+                            pan_deg,
+                            tilt_deg,
+                        )
 
                     if not _firing:
                         cmd.fire()
